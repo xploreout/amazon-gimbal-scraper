@@ -8,7 +8,7 @@ const accountAuthToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require('twilio')(accountSid, accountAuthToken);
 
 const URL =
-  'https://www.amazon.com/DJI-Smartphone-Stabilizer-Extension-ShotGuides/dp/B099ZXD27F/ref=sr_1_1_sspa?crid=38AYB9U8XVDBB&keywords=gimbal&qid=1658316618&sprefix=gimbal';
+  'https://www.amazon.com/DJI-Smartphone-Stabilizer-Extension-ShotGuides/dp/B099ZXD27F/ref=sr_1_1_sspa?crid=38AYB9U8XVDBB&keywords=gimbal';
 
 const targetPrice = 140
 const item = {
@@ -16,6 +16,8 @@ const item = {
   price: '',
   url: URL,
 };
+
+const handleInterval = setInterval(scrape, 10000)
 async function scrape() {
   try {
     const { data } = await axios.get(URL, {
@@ -28,7 +30,7 @@ async function scrape() {
     const $ = cheerio.load(data);
     const product = $('div#dp.photo.en_US');
 
-    item.name = $(product).find('span#productTitle').text();
+    item.name = $(product).find('span#productTitle').text().slice(0,30);
     item.price = $(product)
       .find('span .a-price-whole')
       .first()
@@ -36,13 +38,22 @@ async function scrape() {
       .replace(/[.,]/g, '');
 
     const priceNum = +item.price;
+    console.log(`checking price for ${item.name} below price $${targetPrice}, now at $${item.price} `)
+
     if (priceNum < targetPrice) {
-      client.messages.create({
-        body: `${item.name} at ${URL} is price below ${item.price} now`,
-        from: process.env.FROM_PHONE_NUMBER,
-        to: process.env.TO_PHONE_NUMBER
-      });
-      console.log('SMS was sent')
+      console.log(`${item.name} is priced below $${item.price} now, click ${URL}`)
+      clearInterval(handleInterval)
+
+      // COMMENT OUT - waiting twilio to set up phone# 
+
+      // client.messages.create({
+      //   body: `${item.name} is priced below $${item.price} now, click ${URL}`,
+      //   from: process.env.FROM_PHONE_NUMBER,
+      //   to: process.env.TO_PHONE_NUMBER
+      // }).then(message => {
+      //   clearInterval(handleInterval)
+      //   console.log(message)
+      // });
     }
   } catch (error) {
     console.log(error);
