@@ -10,7 +10,7 @@ const client = require('twilio')(accountSid, accountAuthToken);
 const URL =
   'https://www.amazon.com/DJI-Smartphone-Stabilizer-Extension-ShotGuides/dp/B099ZXD27F/ref=sr_1_1_sspa?crid=38AYB9U8XVDBB&keywords=gimbal';
 
-const targetPrice = 140
+const targetPrice = 145
 const item = {
   name: '',
   price: '',
@@ -44,16 +44,16 @@ async function scrape() {
       console.log(`${item.name} is priced below $${item.price} now, click ${URL}`)
       clearInterval(handleInterval)
 
-      // COMMENT OUT - waiting twilio to set up phone# 
+      // twilio set up - free phone# to send SMS
 
-      // client.messages.create({
-      //   body: `${item.name} is priced below $${item.price} now, click ${URL}`,
-      //   from: process.env.FROM_PHONE_NUMBER,
-      //   to: process.env.TO_PHONE_NUMBER
-      // }).then(message => {
-      //   clearInterval(handleInterval)
-      //   console.log(message)
-      // });
+      client.messages.create({
+        body: `${item.name} is priced below $${item.price} now, click ${URL}`,
+        from: process.env.FROM_PHONE_NUMBER,
+        to: process.env.TO_PHONE_NUMBER
+      }).then(message => {
+        clearInterval(handleInterval)
+        console.log(message)
+      });
     }
   } catch (error) {
     console.log(error);
